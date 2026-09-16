@@ -1,0 +1,29 @@
+name: Build ESP32-C3 MicroPython
+on:
+  push:
+    branches: [ master ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        submodules: true
+
+      - name: Setup ESP-IDF
+        uses: espressif/setup-espressif-idf@v1
+        with:
+          esp-idf-version: v5.3
+          esp-targets: esp32c3
+
+      - name: Build MicroPython
+        run: |
+          cd ports/esp32
+          make BOARD=ESP32_GENERIC_C3 clean
+          make BOARD=ESP32_GENERIC_C3
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32c3-firmware
+          path: ports/esp32/build-ESP32_GENERIC_C3/*.bin
