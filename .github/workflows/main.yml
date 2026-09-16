@@ -12,7 +12,7 @@ jobs:
           submodules: recursive
 
       - name: Setup ESP-IDF
-        uses: espressif/setup-espressif-idf@v1
+        uses: espressif/setup-idf@v1
         with:
           esp-idf-version: v5.3
           esp-targets: esp32c3
