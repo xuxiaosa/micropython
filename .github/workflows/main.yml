@@ -14,10 +14,14 @@ jobs:
         uses: espressif/install-esp-idf-action@v1
         with:
           version: "v5.3"
-      - name: Install ESP-IDF tools & build
+      - name: Build MicroPython
         run: |
-          . /tmp/esp/idf/v5.3/esp-idf/install.sh
-          . /tmp/esp/idf/v5.3/esp-idf/export.sh
+          idf.py --version
           cd ports/esp32
           idf.py set-target esp32c3
           idf.py build
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: esp32c3-firmware
+          path: ports/esp32/build-ESP32_GENERIC_C3/*.bin
