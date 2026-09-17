@@ -18,6 +18,7 @@ jobs:
         run: |
           idf.py --version
           cd ports/esp32
+          rm -rf build sdkconfig
           idf.py set-target esp32c3
           idf.py build
       - name: Upload firmware artifacts
