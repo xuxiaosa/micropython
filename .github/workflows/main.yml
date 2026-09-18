@@ -9,27 +9,26 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: false        # 关键改动1：不要递归拉全部子模块，绕开损坏的 axtls
           fetch-depth: 0
           fetch-tags: true
       - name: Fetch upstream MicroPython tags
         run: |
           git remote add upstream https://github.com/micropython/micropython.git
           git fetch upstream --tags
-          git describe --tags --abbrev=0
       - name: Install ESP-IDF
         uses: espressif/install-esp-idf-action@v1
         with:
-          version: "v5.3"
+          version: "v5.3"          # 请对照您 fork 基于的版本调整，见 ports/esp32/README.md
       - name: Build MicroPython
         run: |
-          idf.py --version
           cd ports/esp32
-          rm -rf build sdkconfig
-          idf.py set-target esp32c3
-          idf.py build
+          make BOARD=ESP32_GENERIC_C3 submodules   # 关键改动2：只拉本板需要的子模块
+          make BOARD=ESP32_GENERIC_C3
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
         with:
           name: esp32c3-firmware
-          path: ports/esp32/build-ESP32_GENERIC_C3/*.bin
+          path: |
+            ports/esp32/build-ESP32_GENERIC_C3/firmware.bin
+            ports/esp32/build-ESP32_GENERIC_C3/firmware.elf
