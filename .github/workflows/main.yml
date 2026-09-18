@@ -9,29 +9,30 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          submodules: false          # 关键改动1：不递归拉全部子模块，绕开损坏的 axtls
+          submodules: false          # 绕开损坏的 axtls 子模块
           fetch-depth: 0
           fetch-tags: true
       - name: Fetch upstream MicroPython tags
         run: |
           git remote add upstream https://github.com/micropython/micropython.git
           git fetch upstream --tags
-      # 关键改动2：在安装 ESP-IDF 之前，用系统 gcc 先把 mpy-cross 编好
-      # 此时 PATH 干净，不会被 RISC-V 交叉工具链污染
       - name: Build mpy-cross (host tool)
         run: |
-          make -C mpy-cross CC=gcc CXX=g++
+          make -C mpy-cross -j2
       - name: Install ESP-IDF
         uses: espressif/install-esp-idf-action@v1
         with:
-          version: "v5.3"            # 建议与您 fork 的 lockfile 期望版本对齐（日志里显示为 5.5.5）
+          version: "v5.3"
       - name: Build MicroPython
         run: |
+          # 关键修复：把系统目录提到 PATH 最前，
+          # 保证 mpy-cross 编译时用系统的 gcc/as；
+          # ESP-IDF 编译 ESP32 代码用绝对路径工具链，不受影响
+          export PATH="/usr/bin:/bin:$PATH"
           idf.py --version
           cd ports/esp32
-          # 关键改动3：只拉本板需要的子模块，并显式指定 host 编译器
           make BOARD=ESP32_GENERIC_C3 submodules
-          make BOARD=ESP32_GENERIC_C3 CC=gcc CXX=g++
+          make BOARD=ESP32_GENERIC_C3
       - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
         with:
